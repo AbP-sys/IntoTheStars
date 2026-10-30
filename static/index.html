@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#061017" />
+    <meta name="description" content="A third-person spacecraft journey through a scale-based Solar System." />
+    <title>Into The Stars | Solar System Flight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script>
+      window.addEventListener("error", (event) => {
+        if (!(event.target instanceof HTMLScriptElement) || event.target.type !== "module") return;
+        document.querySelector("#error-state").hidden = false;
+        document.querySelector("#loading").classList.add("is-gone");
+      }, true);
+    </script>
+    <script type="importmap">
+      { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js" } }
+    </script>
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <main class="universe" aria-label="Solar System spacecraft explorer">
+      <div id="scene" class="scene" aria-label="Interactive three-dimensional space scene" role="img"></div>
+      <div class="scene-vignette" aria-hidden="true"></div>
+      <div class="grain" aria-hidden="true"></div>
+
+      <header class="topbar">
+        <a class="wordmark" href="/" aria-label="Into The Stars home">
+          <span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>INTO THE STARS</span>
+        </a>
+        <div class="mission-tag"><span class="live-dot"></span> SOLAR FIELD GUIDE <span class="tag-divider">/</span> 001</div>
+        <button id="reset-view" class="reset-button" type="button" title="Return to Earth start" aria-label="Reset journey to Earth">
+          <span aria-hidden="true">↺</span><span class="reset-label">RESET JOURNEY</span>
+        </button>
+      </header>
+
+      <!-- <section class="departure" aria-label="Departure location">
+        <p class="eyebrow"><span class="eyebrow-line"></span> DEPARTURE POINT</p>
+        <h1>Earth<span class="title-period">.</span></h1>
+        <div class="departure-meta"><span class="coordinate-dot"></span><span>THIRD-PERSON FLIGHT</span><span class="meta-separator">·</span><span>12 DESTINATIONS</span></div>
+      </section> -->
+
+      <section class="target" aria-label="Journey destination">
+        <label class="eyebrow" for="destination-select">CHARTED DESTINATION</label>
+        <h2 id="target-name">Moon</h2>
+        <select id="destination-select" aria-label="Choose a solar system destination">
+          <option value="sun">Sun</option>
+          <option value="mercury">Mercury</option>
+          <option value="venus">Venus</option>
+          <option value="earth">Earth</option>
+          <option value="moon" selected>Moon</option>
+          <option value="mars">Mars</option>
+          <option value="jupiter">Jupiter</option>
+          <option value="saturn">Saturn</option>
+          <option value="uranus">Uranus</option>
+          <option value="neptune">Neptune</option>
+          <option value="asteroidBelt">Main Asteroid Belt</option>
+          <option value="kuiperBelt">Kuiper Belt</option>
+        </select>
+        <button id="course-button" class="course-button" type="button">ENGAGE COURSE <span aria-hidden="true">↗</span></button>
+        <p class="target-detail"><span id="target-distance-label">MEAN ORBIT</span><span id="target-distance">384,400 KM FROM EARTH</span></p>
+      </section>
+
+      <section class="journey" aria-label="Journey progress">
+        <div class="journey-heading">
+          <div>
+              <p class="eyebrow">RANGE TO DESTINATION</p>
+              <p id="distance-value" class="distance-value" aria-live="off">382,724 <span>KM</span></p>
+          </div>
+          <div class="progress-copy"><span id="progress-value">0.0</span><span class="progress-unit">%</span><span class="progress-caption">TRAVERSED</span></div>
+        </div>
+        <div class="progress-track" role="progressbar" aria-label="Distance traveled toward the Moon" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span id="progress-fill" class="progress-fill"></span>
+          <span class="progress-start" aria-hidden="true"></span>
+          <span class="progress-end" aria-hidden="true"></span>
+        </div>
+        <div class="journey-footer"><span>ORIGIN</span><span id="journey-state">READY · CRUISE 70% c</span><span id="journey-end">MOON</span></div>
+      </section>
+
+      <aside class="controls" aria-label="Flight controls">
+        <div class="control-cluster">
+          <div class="key-grid movement-keys" aria-hidden="true"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
+          <span class="control-label">MOVE</span>
+        </div>
+        <span class="controls-divider"></span>
+        <div class="control-cluster look-cluster">
+          <div class="key-grid arrow-keys" aria-hidden="true"><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></div>
+          <span class="control-label">LOOK</span>
+        </div>
+      </aside>
+
+      <section class="speed-control" aria-label="Ship speed control">
+        <div class="speed-heading">
+          <label class="eyebrow" for="speed-slider">CRUISE SPEED</label>
+          <output id="speed-value" for="speed-slider">70% c</output>
+        </div>
+        <input id="speed-slider" type="range" min="1" max="99" step="1" value="70" aria-describedby="speed-kmh-value" />
+        <div class="speed-footer"><span>1% c</span><span id="speed-kmh-value">209,855 km/s</span><span>99% c</span></div>
+        <div class="warp-control" role="group" aria-label="Simulation time compression">
+          <span class="eyebrow">SIM TIME</span>
+          <button type="button" data-warp="1" aria-pressed="true">1×</button>
+          <button type="button" data-warp="100" aria-pressed="false">100×</button>
+          <button type="button" data-warp="1000" aria-pressed="false">1000×</button>
+        </div>
+      </section>
+
+      <nav id="scene-labels" class="scene-labels" aria-label="Destinations visible in the scene">
+        <button type="button" data-scene-label="0" hidden></button>
+        <button type="button" data-scene-label="1" hidden></button>
+        <button type="button" data-scene-label="2" hidden></button>
+        <button type="button" data-scene-label="3" hidden></button>
+        <button type="button" data-scene-label="4" hidden></button>
+        <button type="button" data-scene-label="5" hidden></button>
+        <button type="button" data-scene-label="6" hidden></button>
+        <button type="button" data-scene-label="7" hidden></button>
+        <button type="button" data-scene-label="8" hidden></button>
+        <button type="button" data-scene-label="9" hidden></button>
+      </nav>
+
+      <aside id="body-facts" class="body-facts" aria-label="Close approach facts" aria-live="off" aria-hidden="true" hidden>
+        <p class="eyebrow">CLOSE APPROACH <span>· REFERENCE NOTES</span></p>
+        <h2 id="facts-title">Moon</h2>
+        <dl id="facts-list"></dl>
+        <section class="claim-group" aria-label="Science claim">
+          <p id="science-claim" class="claim-text"></p>
+          <p id="history-claim" class="claim-text"></p>
+        </section>
+      </aside>
+
+      <footer class="bottom-note">
+        <span><span class="scale-icon">◎</span> BODY SIZES &amp; MEAN ORBITS TO SCALE <i></i> MAPS / BELTS ILLUSTRATIVE</span>
+        <button id="credits-toggle" class="credits-toggle" type="button" aria-expanded="false" aria-controls="credits-panel">IMAGE SOURCES <span aria-hidden="true">+</span></button>
+      </footer>
+
+      <section id="credits-panel" class="credits-panel" hidden aria-label="Image and data credits">
+        <button id="credits-close" type="button" aria-label="Close image sources">×</button>
+        <p class="eyebrow">TEXTURES, SKY &amp; DATA</p>
+        <p>Earth · NASA Earth Observatory, Blue Marble: Next Generation</p>
+        <p>Moon · NASA Goddard Scientific Visualization Studio, LROC color mosaic</p>
+        <p>Sun and planets · Solar System Scope 2K textures, CC BY 4.0. Maps include filled gaps and enhanced color; not all are direct photographs.</p>
+        <p>Milky Way panorama · ESO/S. Brunier, CC BY 4.0. Illustrative sky photography, not a star catalog. Supplemental procedural stars remain a separate illustrative layer.</p>
+        <p>Main asteroid / Kuiper belts · schematic particle distributions; not individual measured objects.</p>
+        <p>Asteroid and Kuiper Belt surfaces use locally generated particle colors and geometry; their rendered thickness and density are illustrative.</p>
+        <p>Mean radii · NASA/JPL Planetary Physical Parameters. Mean orbital distances · NASA NSSDCA Fact Sheets.</p>
+        <p class="credits-license">Body radii and orbital distances share AU scale. Circular coplanar paths show mean distances, not live ephemerides. Simulation time compression is separate from the selected ship speed.</p>
+        <a href="https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/" target="_blank" rel="noreferrer">Earth source ↗</a>
+        <a href="https://svs.gsfc.nasa.gov/4720/" target="_blank" rel="noreferrer">Moon source &amp; credit ↗</a>
+        <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noreferrer">Texture pack &amp; license ↗</a>
+        <a href="https://www.eso.org/public/images/eso0932a/" target="_blank" rel="noreferrer">ESO Milky Way panorama ↗</a>
+        <a href="https://www.eso.org/public/copyright/" target="_blank" rel="noreferrer">ESO image-use terms ↗</a>
+        <a href="https://ssd.jpl.nasa.gov/planets/phys_par.html" target="_blank" rel="noreferrer">JPL radii ↗</a>
+        <a href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/index.html" target="_blank" rel="noreferrer">NASA orbit distances ↗</a>
+        <a href="https://science.nasa.gov/solar-system/asteroids/" target="_blank" rel="noreferrer">NASA asteroids ↗</a>
+        <a href="https://science.nasa.gov/solar-system/kuiper-belt/" target="_blank" rel="noreferrer">NASA Kuiper Belt ↗</a>
+      </section>
+
+      <div id="loading" class="loading-state" role="status"><span class="loading-orbit"></span><span>ENTERING EARTH ORBIT</span></div>
+      <p id="error-state" class="error-state" role="alert" hidden>The 3D scene could not load. Check your connection and reload.</p>
+    </main>
+  </body>
+</html>
