@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { AU_KM, BODY_DATA, CAMERA_TRAIL_AU, SHIP_LENGTH_AU } from "/data/solar-system.js";
 
 export function createSolarSystemScene(root, bodies, destinations, onTextureError) {
@@ -278,42 +279,68 @@ function createBeltParticleTexture(icy, initialSeed) {
   return texture;
 }
 
+
 function addSpacecraft({ scene, bodies }) {
   const ship = new THREE.Group();
-  ship.name = "Illustrative third-person spacecraft model";
-  const hull = new THREE.MeshStandardMaterial({ color: 0xc5d5d4, metalness: 0.72, roughness: 0.3 });
-  const darkHull = new THREE.MeshStandardMaterial({ color: 0x334651, metalness: 0.64, roughness: 0.42 });
-  const cockpit = new THREE.MeshStandardMaterial({ color: 0x78c6d1, emissive: 0x1b6571, emissiveIntensity: 1.4, metalness: 0.35, roughness: 0.18 });
-  const glow = new THREE.MeshBasicMaterial({ color: 0xf0bb83 });
-
-  const fuselage = new THREE.Mesh(new THREE.ConeGeometry(SHIP_LENGTH_AU * 0.16, SHIP_LENGTH_AU, 10), hull);
-  fuselage.rotation.x = -Math.PI / 2;
-  ship.add(fuselage);
-  const wing = new THREE.Mesh(new THREE.BoxGeometry(SHIP_LENGTH_AU * 0.82, SHIP_LENGTH_AU * 0.035, SHIP_LENGTH_AU * 0.24), darkHull);
-  wing.position.z = SHIP_LENGTH_AU * 0.1;
-  ship.add(wing);
-  const cockpitMesh = new THREE.Mesh(new THREE.SphereGeometry(SHIP_LENGTH_AU * 0.075, 12, 8), cockpit);
-  cockpitMesh.position.set(0, SHIP_LENGTH_AU * 0.09, -SHIP_LENGTH_AU * 0.13);
-  cockpitMesh.scale.set(0.75, 0.75, 1.5);
-  ship.add(cockpitMesh);
-
-  for (const side of [-1, 1]) {
-    const engine = new THREE.Mesh(new THREE.CylinderGeometry(SHIP_LENGTH_AU * 0.045, SHIP_LENGTH_AU * 0.06, SHIP_LENGTH_AU * 0.24, 10), darkHull);
-    engine.rotation.x = Math.PI / 2;
-    engine.position.set(side * SHIP_LENGTH_AU * 0.18, 0, SHIP_LENGTH_AU * 0.44);
-    ship.add(engine);
-    const engineLight = new THREE.Mesh(new THREE.SphereGeometry(SHIP_LENGTH_AU * 0.04, 8, 8), glow);
-    engineLight.position.set(side * SHIP_LENGTH_AU * 0.18, 0, SHIP_LENGTH_AU * 0.58);
-    ship.add(engineLight);
-  }
+  ship.name = "Illustrative third-person spacecraft";
 
   const earth = bodies.get("earth");
-  ship.position.copy(earth.position).add(new THREE.Vector3(-70000 / AU_KM, 0, 0));
+
+  // Preserve existing positioning
+  ship.position.copy(earth.position).add(
+    new THREE.Vector3(-70000 / AU_KM, 0, 0)
+  );
+
   ship.rotation.order = "YXZ";
   ship.rotation.set(0, -Math.PI / 2, 0, "YXZ");
+
   scene.add(ship);
+
+  const loader = new GLTFLoader();
+
+  loader.load(
+    "/assets/spaceship-light.glb",
+
+    (gltf) => {
+      const model = gltf.scene;
+        
+      // Calculate original model dimensions
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.getSize(new THREE.Vector3());
+
+      const maxDimension = Math.max(size.x, size.y, size.z);
+
+      // Scale model to your desired spacecraft length
+      const scale = SHIP_LENGTH_AU / maxDimension;
+      model.scale.multiplyScalar(scale);
+
+      // Center the model around its origin
+      const scaledBox = new THREE.Box3().setFromObject(model);
+      const center = scaledBox.getCenter(new THREE.Vector3());
+
+      model.position.sub(center);
+      model.rotation.set(0, -Math.PI / 2, 0);
+
+      // Add model to spacecraft container
+      ship.add(model);
+
+      console.log("Spaceship loaded:", {
+        dimensions: size,
+        scale,
+        position: ship.position
+      });
+    },
+
+    undefined,
+
+    (error) => {
+      console.error("Failed to load spaceship GLB:", error);
+    }
+  );
+
   return ship;
 }
+
 
 function addStars({ scene }) {
   let seed = 17361;

@@ -5,7 +5,7 @@ export const MAX_SPEED_PERCENT = 99;
 export const DEFAULT_SPEED_PERCENT = 70;
 export const DEFAULT_TIME_WARP = 1;
 export const MIN_ARRIVAL_RANGE_KM = 30000;
-export const CAMERA_TRAIL_AU = 0.00012;
+export const CAMERA_TRAIL_AU = 0.00005;
 export const SHIP_LENGTH_AU = 1100 / AU_KM;
 
 export const BODY_DATA = [
