@@ -1,6 +1,6 @@
 # Into The Stars
 
-A personal Solar System flight explorer. Python's standard library serves the app; Three.js renders the browser scene. The Sun, eight planets, and Moon are selectable destinations. No database or package installation is required.
+A 3D space exploration game built for scientifically careful discovery, beginning at Solar System scale and designed to grow toward the Galaxy and beyond. Python's standard library serves the app; Three.js renders the browser scene. The Sun, eight planets, Moon, Asteroid Belt, and Kuiper Belt are selectable destinations.
 
 ## Run locally
 
@@ -10,15 +10,18 @@ A personal Solar System flight explorer. Python's standard library serves the ap
 
 Open http://127.0.0.1:8000. The browser needs internet access to load the pinned Three.js module and optional Google Fonts. Body textures and both Milky Way panoramas are bundled locally. The ESO panorama is preferred; if it fails to load, the Solar System Scope panorama is used.
 
-WASD flies the locally modeled third-person ship, arrow keys steer, and dragging the scene changes heading (including touch drag). Choose a destination, select a body or belt visible in the camera view, and engage autopilot for an obstacle-avoiding course, or fly manually. Cruise speed is adjustable from 1% to 99% of light speed (default: 70%); simulation time compression is a separate control. The ship stops at a close-approach standoff, then displays numerical data and a randomly selected science and history claim with a source link. The reset button or `R` returns to the Earth departure point.
+WASD flies the third-person GLTF spacecraft, arrow keys steer, and dragging the scene changes heading (including touch drag). Choose a destination, select a body or belt visible in the camera view, and engage autopilot for an obstacle-avoiding course, or fly manually. Cruise speed is adjustable from 1% to 99% of light speed (default: 70%); simulation time compression is a separate control. The ship stops at a close-approach standoff, then displays numerical data and a randomly selected science and history claim with a source link. The reset button or `R` returns to the Earth departure point.
 
 ## Code structure
 
-- `static/app.js` coordinates input, flight state, the approach loop, and interface updates.
-- `static/data/solar-system.js` contains shared units, simulation defaults, and body records; `static/data/planet-facts.js` contains sourced science and history claims.
-- `static/scene/solar-system-scene.js` constructs the Three.js renderer, sky, celestial bodies, belts, ship, and camera.
-- `static/flight/navigation.js` handles projected belt destinations, waypoints, collision avoidance, and camera-frustum visibility.
-- `static/ui/body-facts.js` owns the approach facts display, source links, fade lifecycle, and typing effect.
+- `static/app.js` is the composition root: it initializes modules and coordinates the animation loop.
+- `static/data/solar-system.js` owns units, simulation defaults, and body records; `static/data/planet-facts.js` owns sourced science and history claims.
+- `static/flight/flight-controller.js` owns ship movement, speed/time-warp, autopilot, and flight state. It accepts scene objects and navigation operations and returns flight snapshots for presentation.
+- `static/flight/navigation.js` owns destination projection, arrival ranges, waypoints, collision avoidance, and camera-frustum visibility.
+- `static/ui/explorer-interface.js` binds DOM input and renders destination, journey, speed, and projected labels through the flight-controller API; `static/ui/body-facts.js` owns close-approach facts, source links, fades, and typing.
+- `static/scene/solar-system-scene.js` composes the Three.js renderer and returns a scene runtime (`scene`, `camera`, `renderer`, `ship`, `startPosition`, and camera update operation).
+- `static/scene/environment.js`, `celestial-bodies.js`, `belts.js`, and `spacecraft.js` separately own sky/lighting/stars/camera, body meshes/orbits, schematic belt regions, and the GLTF spacecraft/effects.
+- `static/data/` remains the owner of astronomy records. Future scales and external data integrations should use explicit module contracts; add provider/API or persistence boundaries when an approved requirement calls for them, not as unused placeholders.
 
 ## Scale and interpretation
 
